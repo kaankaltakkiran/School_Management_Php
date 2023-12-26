@@ -1,5 +1,8 @@
 <!-- Kullanıcı üye bilgilerini veri tabanına kaydetme -->
 <?php
+$activePage = 'register';
+?>
+<?php
 if (isset($_POST['submit'])) {
     //!Hata mesajlarını göstermek için boş bir dizi
     $errors = array();
