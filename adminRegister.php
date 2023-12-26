@@ -1,11 +1,10 @@
 <!-- Kullanıcı üye bilgilerini veri tabanına kaydetme -->
 <?php
-$activePage = 'register';
-?>
-<?php
 if (isset($_POST['submit'])) {
     //!Hata mesajlarını göstermek için boş bir dizi
     $errors = array();
+    //!Başırılı mesajlarını göstermek için boş bir dizi
+    $successes = array();
 
     require_once 'db.php';
     $name = $_POST['form_name'];
@@ -14,6 +13,12 @@ if (isset($_POST['submit'])) {
     $password = $_POST['form_password'];
 /*  Şifrele hashleme */
     $password = password_hash($password, PASSWORD_DEFAULT);
+
+    /*  resim yükleme */
+    $img_name = $_FILES['form_image']['name'];
+    $img_size = $_FILES['form_image']['size'];
+    $tmp_name = $_FILES['form_image']['tmp_name'];
+    $error = $_FILES['form_image']['error'];
 
     //?Kullanıcı var mı yok mu kontrol etme
     $sql = "SELECT * FROM admins WHERE email = :form_email";
@@ -29,17 +34,39 @@ if (isset($_POST['submit'])) {
         $errors[] = "This email is already registered";
 
         //!Eğer kullanıcı yoksa kaydet
-    } else {
-        $sql = "INSERT INTO admins (username,email,userpassword,gender) VALUES (:form_name,:form_email,'$password',:form_gender)";
-        $SORGU = $DB->prepare($sql);
-        $SORGU->bindParam(':form_name', $name);
-        $SORGU->bindParam(':form_email', $email);
-        $SORGU->bindParam(':form_gender', $gender);
+    } else if ($error === 0) {
+        //!imgsize bak sonra
+        if ($img_size > 5242880) {
+            $errors[] = "Sorry, your file is too large.";
+        } else {
+            $img_ex = pathinfo($img_name, PATHINFO_EXTENSION);
+            $img_ex_lc = strtolower($img_ex);
+            //! Resim türü kontrolü
+            $allowed_exs = array("jpg", "jpeg", "png");
 
-        $SORGU->execute();
-        //!Kayıt başarılıysa login sayfasına yönlendir
-        header("location: login.php");
+            if (in_array($img_ex_lc, $allowed_exs)) {
+                $new_img_name = uniqid("IMG-", true) . '.' . $img_ex_lc;
+                $img_upload_path = 'Admin Img/' . $new_img_name;
+                move_uploaded_file($tmp_name, $img_upload_path);
+
+                // Insert into Database
+                $sql = "INSERT INTO admins (username,email,userpassword,gender,userimg) VALUES (:form_name,:form_email,'$password',:form_gender,'$new_img_name')";
+                $SORGU = $DB->prepare($sql);
+                $SORGU->bindParam(':form_name', $name);
+                $SORGU->bindParam(':form_email', $email);
+                $SORGU->bindParam(':form_gender', $gender);
+
+                $SORGU->execute();
+                $successes[] = "Admin Registered Successfully";
+            } else {
+                $errors[] = "You can't upload files of this type";
+            }
+        }
+    } else {
+        /*     $errors[] = "unknown error occurred!"; */
+        $errors[] = "Image Not Selected";
     }
+
 }
 ?>
 
@@ -58,7 +85,7 @@ if (isset($_POST['submit'])) {
   <div class="row justify-content-center mt-3">
   <div class="col-6">
   <!--   İşlemden sonra login sayfasına yönlendirme -->
-<form method="POST">
+<form method="POST"enctype="multipart/form-data">
 <h1 class="text-center text-danger">Admin Register</h1>
 <?php
 //! Hata mesajlarını göster
@@ -69,6 +96,17 @@ if (!empty($errors)) {
 <div class="auto-close alert mt-3 text-center alert-danger alert-dismissible fade show" role="alert">
 ' . $error . '
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+</div>
+';
+    }
+}if (!empty($successes)) {
+    foreach ($successes as $successe) {
+        echo '
+  <div class="container">
+<div class="auto-close alert mt-3 text-center alert-success alert-dismissible fade show" role="alert">
+' . $successe . '
+<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 </div>
 ';
@@ -87,20 +125,33 @@ if (!empty($errors)) {
   <input type="password"  name="form_password" class="form-control" id="password" placeholder="Password"required>
   <span class="input-group-text bg-transparent"><i id="togglePassword" class="bi bi-eye-slash"></i></span>
 </div>
-<div class="form-check">
+<div class="row">
+  <div class="col-6">
+  <input type='file' name='form_image'>
+  </div>
+  <div class="col-6">
+ <!--  form-check-inline yan yana gözüküyor radio butonlar -->
+  <div class="form-check form-check-inline">
   <input class="form-check-input" type="radio" name="form_gender" value="M" required >
   <label class="form-check-label" >
   Male
   </label>
 </div>
-<div class="form-check">
+<div class="form-check form-check-inline">
   <input class="form-check-input" type="radio" name="form_gender" value="F" required>
   <label class="form-check-label" >
   Female
   </label>
 </div>
+  </div>
+</div>
+<div class="row justify-content-center  mt-3">
+  <div class="d-grid col-3 ">
+
 
                   <button type="submit" name="submit" class="btn btn-primary mt-1">Register</button>
+                  </div>
+                  </div>
      </form>
      </div>
 </div>

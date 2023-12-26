@@ -16,16 +16,18 @@ session_start();
         <li class="nav-item">
           <a class="nav-link" href="logout.php">Logout</a>
         </li>
+        <?php
+require 'db.php';
+    $SORGU = $DB->prepare("SELECT * FROM admins WHERE userid = :idUser");
+    $SORGU->bindParam(':idUser', $_SESSION['id']);
+    $SORGU->execute();
+    $users = $SORGU->fetchAll(PDO::FETCH_ASSOC);
+    $users = $users[0];
+    ?>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <img
-            src="./IMG_20231009_194219.jpg"
-            class="rounded-circle"
-            height="25"
 
-            alt="Black and White Portrait of a Man"
-            loading="lazy"
-          />
+          <img src='<?php echo "Admin Img/{$users['userimg']}"; ?>' class='rounded-circle' height="30" width='30'>
           </a>
           <ul class="dropdown-menu  dropdown-menu-end">
             <li><a class="dropdown-item" href="#">Action</a></li>
