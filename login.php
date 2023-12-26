@@ -8,9 +8,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   </head>
   <body>
-  <?php
+  <?php require 'navbar.php';
 require_once 'db.php';
-
 @session_start();
 
 //! Eğer zaten giriş yapmışsa, index.php'ye yönlendir

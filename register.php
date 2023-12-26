@@ -50,6 +50,7 @@ if (isset($_POST['submit'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   </head>
   <body>
+  <?php require 'navbar.php';?>
     <div class="container">
   <div class="row justify-content-center mt-3">
   <div class="col-6">
